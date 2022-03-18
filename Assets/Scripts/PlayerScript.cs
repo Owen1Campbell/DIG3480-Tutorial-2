@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class PlayerScript : MonoBehaviour
 {
@@ -10,8 +11,11 @@ public class PlayerScript : MonoBehaviour
     public float speed;
     public float jumpForce = 3f;
 
-    public Text score;
+    public TextMeshProUGUI score;
+    public TextMeshProUGUI lives;
     public GameObject winMsg;
+    public Transform level2spawn;
+    public SoundManager smgr;
 
     // variables for ground checking are included, but unused to enable wall jumping
     public Transform groundCheck;
@@ -20,21 +24,17 @@ public class PlayerScript : MonoBehaviour
     public LayerMask allGround;
 
     private int scoreValue = 0;
+    private int livesValue;
+
 
     // Start is called before the first frame update
     void Start()
     {
         rd2d = GetComponent<Rigidbody2D>();
-        score.text = scoreValue.ToString();
+        score.text = "Score: " + scoreValue;
         winMsg.SetActive(false);
-    }
-    
-    private void Update()
-    {
-        if (scoreValue == 4)
-        {
-            winMsg.SetActive(true);
-        }
+        livesValue = 3;
+        lives.text = "Lives: " + livesValue.ToString();
     }
 
     void FixedUpdate()
@@ -49,9 +49,14 @@ public class PlayerScript : MonoBehaviour
     {
         if (collision.tag == "Coin")
         {
-            scoreValue += 1;
-            score.text = scoreValue.ToString();
             Destroy(collision.gameObject);
+            UpdateScore();
+        }
+
+        if (collision.tag == "Enemy")
+        {
+            Destroy(collision.gameObject);
+            UpdateLives();
         }
     }
 
@@ -63,6 +68,38 @@ public class PlayerScript : MonoBehaviour
             {
                 rd2d.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse); //the 3 in this line of code is the player's "jumpforce," and you change that number to get different jump behaviors.  You can also create a public variable for it and then edit it in the inspector.
             }
+        }
+    }
+
+    void UpdateScore()
+    {
+        scoreValue += 1;
+        score.text = "Score: " + scoreValue;
+
+        if (scoreValue == 4)
+        {
+            transform.position = level2spawn.position;
+            livesValue = 4;
+            UpdateLives();
+        }
+
+        if (scoreValue == 9)
+        {
+            winMsg.SetActive(true);
+            smgr.PlayWin();
+        }
+    }
+
+    void UpdateLives()
+    {
+        livesValue -= 1;
+        lives.text = "Lives: " + livesValue;
+        if (livesValue == 0)
+        {
+            winMsg.GetComponent<TextMeshProUGUI>().text = "You Lose!";
+            winMsg.SetActive(true);
+            gameObject.SetActive(false); // setactive instead of destroy prevents errors in camera script which relies on player object
+            smgr.PlayLose();
         }
     }
 }
