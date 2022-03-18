@@ -25,6 +25,9 @@ public class PlayerScript : MonoBehaviour
 
     private int scoreValue = 0;
     private int livesValue;
+    private bool facingRight = true;
+
+    private Animator anim;
 
 
     // Start is called before the first frame update
@@ -35,14 +38,37 @@ public class PlayerScript : MonoBehaviour
         winMsg.SetActive(false);
         livesValue = 3;
         lives.text = "Lives: " + livesValue.ToString();
+        anim = GetComponent<Animator>();
     }
 
     void FixedUpdate()
     {
+        isGrounded = Physics2D.OverlapCircle(groundCheck.position, checkRadius, allGround);
         float hozMovement = Input.GetAxis("Horizontal");
         float vertMovement = Input.GetAxis("Vertical");
         rd2d.AddForce(new Vector2(hozMovement * speed, vertMovement * speed));
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, checkRadius, allGround);
+        if (Input.GetAxis("Horizontal") != 0f && isGrounded)
+        {
+            anim.SetInteger("State", 1);    // play walk animation when walking on ground
+        }
+        else if (!isGrounded)
+        {
+            anim.SetInteger("State", 3);    // play falling animation when in air
+        }
+        else
+        {
+            anim.SetInteger("State", 0);    // play idle when not moving on ground
+        }
+
+        // flip calls
+        if (facingRight == false && hozMovement > 0f)
+        {
+            Flip();
+        }
+        else if (facingRight && hozMovement < 0)
+        {
+            Flip();
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision) // using OnTrigger instead of OnCollision prevents coins from stopping the player's movement
@@ -67,7 +93,9 @@ public class PlayerScript : MonoBehaviour
             if (Input.GetKey(KeyCode.W))
             {
                 rd2d.AddForce(new Vector2(0, jumpForce), ForceMode2D.Impulse); //the 3 in this line of code is the player's "jumpforce," and you change that number to get different jump behaviors.  You can also create a public variable for it and then edit it in the inspector.
+                anim.SetInteger("State", 2);    // play jump anim
             }
+            
         }
     }
 
@@ -101,5 +129,13 @@ public class PlayerScript : MonoBehaviour
             gameObject.SetActive(false); // setactive instead of destroy prevents errors in camera script which relies on player object
             smgr.PlayLose();
         }
+    }
+    
+    void Flip()
+    {
+        facingRight = !facingRight;
+        Vector2 Scaler = transform.localScale;
+        Scaler.x = Scaler.x * -1;
+        transform.localScale = Scaler;
     }
 }
