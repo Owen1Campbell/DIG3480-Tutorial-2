@@ -51,13 +51,10 @@ public class PlayerScript : MonoBehaviour
         {
             anim.SetInteger("State", 1);    // play walk animation when walking on ground
         }
-        else if (!isGrounded)
-        {
-            anim.SetInteger("State", 3);    // play falling animation when in air
-        }
+        
         else
         {
-            anim.SetInteger("State", 0);    // play idle when not moving on ground
+            anim.SetInteger("State", 0);    // play idle when not moving or jumping
         }
 
         // flip calls
