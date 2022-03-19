@@ -122,7 +122,7 @@ public class PlayerScript : MonoBehaviour
     {
         livesValue -= 1;
         lives.text = "Lives: " + livesValue;
-        if (livesValue == 0)
+        if (livesValue == 0 && winMsg.activeSelf == false)  // activate lose text unless game is already won
         {
             winMsg.GetComponent<TextMeshProUGUI>().text = "You Lose!";
             winMsg.SetActive(true);
